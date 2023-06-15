@@ -1,7 +1,0 @@
-INFO 2023/06/13 20:16:27.123053 Request POST /entries map[Accept:[*/*] Content-Length:[34] Content-Type:[application/json] User-Agent:[curl/7.87.0]] &{0x1400050c090 <nil> <nil> false true {0 0} false false false 0x102afb250}
-INFO 2023/06/13 20:16:32.375027 Request GET /entries/2 map[Accept:[*/*] User-Agent:[curl/7.87.0]] {}
-INFO 2023/06/13 20:16:39.890919 Request GET /entries/test map[Accept:[*/*] User-Agent:[curl/7.87.0]] {}
-ERROR 2023/06/13 20:16:39.890976 Failed to parse id strconv.Atoi: parsing "test": invalid syntax
-INFO 2023/06/13 20:16:48.555438 Request GET /entries map[Accept:[*/*] User-Agent:[curl/7.87.0]] {}
-INFO 2023/06/13 20:16:48.555464 Request Headers map[Accept:[*/*] User-Agent:[curl/7.87.0]]
-INFO 2023/06/13 20:16:48.555497 Response Body 200 [{0 0 Get something done} {1 2 Completed task} {2 4 Do later}]

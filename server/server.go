@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ejwolfe/goju-server/logger"
 	"github.com/gin-gonic/gin"
+
+	"github.com/ejwolfe/goju-server/logger"
 )
 
 const CONTEXT = "/entries"
@@ -29,16 +30,15 @@ type Entry struct {
 	Message string    `json:"message"`
 }
 
-var entries = []Entry{
-	{ID: 0, Type: Task, Message: "Get something done"},
-	{ID: 1, Type: Migrated, Message: "Completed task"},
-}
+var entries []Entry
 
 var serviceLogger = logger.CreateLogger()
 
 func CreateServer() {
 	router := gin.Default()
 	router.Use(Logger())
+
+	entries = readEntriesFile()
 
 	router.GET(CONTEXT, getEntries)
 	router.GET(CONTEXT+"/:id", getEntryByID)
@@ -55,7 +55,6 @@ func getEntries(c *gin.Context) {
 
 func getEntryByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-
 	if err != nil {
 		serviceLogger.Error("Failed to parse id", err)
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
@@ -85,4 +84,5 @@ func addEntry(c *gin.Context) {
 
 	entries = append(entries, newEntry)
 	c.IndentedJSON(http.StatusCreated, newEntry)
+	writeEntriesFile(entries)
 }

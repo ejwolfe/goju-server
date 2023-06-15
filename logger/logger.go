@@ -18,7 +18,7 @@ type Logger struct {
 }
 
 func createLogFile() *os.File {
-	file, err := os.Create("application.log")
+	file, err := os.Create("support.log")
 	if err != nil {
 		fmt.Println("Error creating log file: ", err)
 	}
