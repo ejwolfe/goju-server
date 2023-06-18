@@ -1,10 +1,12 @@
 package server
 
 import (
+	"io"
 	"net/http"
-	"strconv"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
 	"github.com/ejwolfe/goju-server/logger"
 )
@@ -25,7 +27,7 @@ const (
 )
 
 type Entry struct {
-	ID      int       `json:"id"`
+	ID      string    `json:"id"`
 	Type    EntryType `json:"type"`
 	Message string    `json:"message"`
 }
@@ -35,14 +37,21 @@ var entries []Entry
 var serviceLogger = logger.CreateLogger()
 
 func CreateServer() {
+	serverFile, _ := os.Create("server.log")
+	gin.DefaultWriter = io.MultiWriter(serverFile)
 	router := gin.Default()
 	router.Use(Logger())
 
 	entries = readEntriesFile()
 
-	router.GET(CONTEXT, getEntries)
-	router.GET(CONTEXT+"/:id", getEntryByID)
-	router.POST(CONTEXT, addEntry)
+	v1 := router.Group("/v1")
+	{
+		v1.GET(CONTEXT, getEntries)
+		v1.GET(CONTEXT+"/:id", getEntryByID)
+		v1.POST(CONTEXT, addEntry)
+		v1.DELETE(CONTEXT+"/:id", removeEntry)
+		v1.PUT(CONTEXT+"/:id", updateEntry)
+	}
 
 	router.Run("localhost:8080")
 }
@@ -54,12 +63,7 @@ func getEntries(c *gin.Context) {
 }
 
 func getEntryByID(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		serviceLogger.Error("Failed to parse id", err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
-		return
-	}
+	id := c.Param("id")
 
 	for _, entry := range entries {
 		if entry.ID == id {
@@ -80,9 +84,46 @@ func addEntry(c *gin.Context) {
 		return
 	}
 
-	newEntry.ID = len(entries)
-
+	newEntry.ID = uuid.NewString()
 	entries = append(entries, newEntry)
+	locationHeader := CONTEXT + "/" + newEntry.ID
+	c.Header("Location", locationHeader)
 	c.IndentedJSON(http.StatusCreated, newEntry)
 	writeEntriesFile(entries)
+}
+
+func removeEntry(c *gin.Context) {
+	id := c.Param("id")
+
+	for index, entry := range entries {
+		if entry.ID == id {
+			entries = removeElementByIndex(entries, index)
+			c.Status(http.StatusNoContent)
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "entry not found"})
+}
+
+func updateEntry(c *gin.Context) {
+	id := c.Param("id")
+
+	for index, entry := range entries {
+		if entry.ID == id {
+			var newEntry Entry
+
+			if err := c.BindJSON(&newEntry); err != nil {
+				serviceLogger.Error("Failed to parse request", err)
+				c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid request"})
+				return
+			}
+			entries[index].Type = newEntry.Type
+			entries[index].Message = newEntry.Message
+			c.Status(http.StatusNoContent)
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "entry not found"})
 }

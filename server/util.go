@@ -70,3 +70,7 @@ func writeEntriesFile(entries []Entry) {
 		serviceLogger.Error("Error writing json file", writeErr)
 	}
 }
+
+func removeElementByIndex[T any](slice []T, index int) []T {
+	return append(slice[:index], slice[index+1:]...)
+}
