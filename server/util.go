@@ -74,3 +74,7 @@ func writeEntriesFile(entries []Entry) {
 func removeElementByIndex[T any](slice []T, index int) []T {
 	return append(slice[:index], slice[index+1:]...)
 }
+
+func createResponseErrorMessage(message string) map[string]any {
+	return gin.H{"message": message}
+}
