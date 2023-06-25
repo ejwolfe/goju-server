@@ -2,9 +2,6 @@ package server
 
 import (
 	"bytes"
-	"encoding/json"
-	"io/ioutil"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,35 +37,6 @@ func logResponse(c *gin.Context, writer *bodyLogWriter) {
 	headers := c.Writer.Header()
 	body := writer.body.String()
 	serviceLogger.Info("Response", headers, body)
-}
-
-func readEntriesFile() []Entry {
-	data, err := ioutil.ReadFile("entries.json")
-	if err != nil {
-		serviceLogger.Error("Error reading file", err)
-	}
-
-	var fileEntries []Entry
-	jsonParseErr := json.Unmarshal(data, &fileEntries)
-
-	if jsonParseErr != nil {
-		serviceLogger.Error("Error parsing json", jsonParseErr)
-	}
-
-	return fileEntries
-}
-
-func writeEntriesFile(entries []Entry) {
-	json, err := json.Marshal(entries)
-	if err != nil {
-		serviceLogger.Error("Error encoding json", err)
-	}
-
-	writeErr := ioutil.WriteFile("entries.json", json, 0644)
-
-	if writeErr != nil {
-		serviceLogger.Error("Error writing json file", writeErr)
-	}
 }
 
 func removeElementByIndex[T any](slice []T, index int) []T {
